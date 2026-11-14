@@ -24,6 +24,20 @@ const SCHEMA_SQL = `
     WHERE status = 'pending';
 `;
 
+// Any fixed number works; it just has to be the same everywhere migrate() runs
+const MIGRATION_LOCK_ID = 727_274_001;
+
 export async function migrate(pool: Pool): Promise<void> {
-  await pool.query(SCHEMA_SQL);
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("SELECT pg_advisory_xact_lock($1)", [MIGRATION_LOCK_ID]);
+    await client.query(SCHEMA_SQL);
+    await client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
