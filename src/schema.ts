@@ -22,6 +22,10 @@ const SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS jobs_pending_idx
     ON bolt.jobs (queue, priority, run_at)
     WHERE status = 'pending';
+
+  CREATE TABLE IF NOT EXISTS bolt.schema_version (
+    version integer NOT NULL
+  );
 `;
 
 // Any fixed number works; it just has to be the same everywhere migrate() runs
@@ -33,6 +37,11 @@ export async function migrate(pool: Pool): Promise<void> {
     await client.query("BEGIN");
     await client.query("SELECT pg_advisory_xact_lock($1)", [MIGRATION_LOCK_ID]);
     await client.query(SCHEMA_SQL);
+    const result = await client.query("SELECT version FROM bolt.schema_version");
+    const currentVersion = result.rows[0]?.version ?? 0;
+    if (currentVersion < 1) {
+      await client.query("INSERT INTO bolt.schema_version (version) VALUES (1)");
+    }
     await client.query("COMMIT");
   } catch (err) {
     await client.query("ROLLBACK");
