@@ -21,4 +21,10 @@ test("enqueue() can schedule a job for later", async () => {
   assert.equal(job.run_at.getTime(), runAt.getTime());
 });
 
+test("enqueue() saves the priority", async () => {
+  const job = await enqueue(pool, "emails", { to: "sam@example.com" }, { priority: 5 });
+
+  assert.equal(job.priority, 5);
+});
+
 test.after(() => pool.end());
