@@ -14,4 +14,11 @@ test("enqueue() adds a pending job", async () => {
   assert.equal(job.status, "pending");
 });
 
+test("enqueue() can schedule a job for later", async () => {
+  const runAt = new Date(Date.now() + 60 * 60 * 1000);
+  const job = await enqueue(pool, "emails", { to: "sam@example.com" }, { runAt });
+
+  assert.equal(job.run_at.getTime(), runAt.getTime());
+});
+
 test.after(() => pool.end());
