@@ -12,7 +12,7 @@ If your app already uses Postgres, you can run background jobs
 ## Status
 
 - [x] Milestone 1: `bolt.jobs` table, `migrate()`, schema versioning
-- [ ] Adding jobs (`queue.add`)
+- [x] Milestone 2: `enqueue()` with `runAt`, `priority`, `maxAttempts`, and transactional `client`
 - [ ] Workers (`queue.work`)
 - [ ] Retries
 - [ ] Events (LISTEN/NOTIFY)
