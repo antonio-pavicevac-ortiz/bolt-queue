@@ -33,4 +33,18 @@ test("enqueue() saves maxAttempts", async () => {
   assert.equal(job.max_attempts, 3);
 });
 
+test("a job enqueued in a rolled-back transaction disappears", async () => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const job = await enqueue(pool, "emails", { to: "sam@example.com" }, { client });
+    await client.query("ROLLBACK");
+
+    const result = await pool.query("SELECT * FROM bolt.jobs WHERE id = $1", [job.id]);
+    assert.equal(result.rows.length, 0);
+  } finally {
+    client.release();
+  }
+});
+
 test.after(() => pool.end());
