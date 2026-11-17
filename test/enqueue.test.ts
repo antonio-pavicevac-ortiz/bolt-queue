@@ -27,4 +27,10 @@ test("enqueue() saves the priority", async () => {
   assert.equal(job.priority, 5);
 });
 
+test("enqueue() saves maxAttempts", async () => {
+  const job = await enqueue(pool, "emails", { to: "sam@example.com" }, { maxAttempts: 3 });
+
+  assert.equal(job.max_attempts, 3);
+});
+
 test.after(() => pool.end());

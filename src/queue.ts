@@ -4,17 +4,17 @@ export async function enqueue(
   pool: Pool,
   queue: string,
   payload: object,
-  options: { runAt?: Date; priority?: number } = {}
+  options: { runAt?: Date; priority?: number; maxAttempts?: number } = {}
 ) {
   if (typeof queue !== "string" || queue.trim() === "") {
     throw new Error("enqueue(): queue name must be a non-empty string");
   }
 
   const result = await pool.query(
-    `INSERT INTO bolt.jobs (queue, payload, run_at, priority)
-     VALUES ($1, $2, COALESCE($3, now()), COALESCE($4, 0))
+    `INSERT INTO bolt.jobs (queue, payload, run_at, priority, max_attempts)
+     VALUES ($1, $2, COALESCE($3, now()), COALESCE($4, 0), COALESCE($5, 5))
      RETURNING *`,
-    [queue, payload, options.runAt ?? null, options.priority ?? null]
+    [queue, payload, options.runAt ?? null, options.priority ?? null, options.maxAttempts ?? null]
   );
   return result.rows[0];
 }
